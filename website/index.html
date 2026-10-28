@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outfit Matcher: upload one garment, get the rest of the outfit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#161b2e;--mute:#555d78;--line:#d5d9e4;--accent:#0e6b5e;--accent-ink:#fff;--warn:#fff6dc;--warn-line:#d9a933;--bad:#a4262c}
+@media (prefers-color-scheme:dark){:root{--bg:#10131d;--panel:#171c2b;--ink:#eef0f7;--mute:#a1a8c0;--line:#2c3350;--accent:#3dbfa8;--accent-ink:#06211c;--warn:#2b2412;--warn-line:#8a6d1f;--bad:#ff8c92}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.15;margin:0 0 .5em}
+h1{font-size:clamp(2.1rem,5vw,3.6rem);letter-spacing:-.02em;max-width:16ch}
+h2{font-size:1.7rem}h3{font-size:1.1rem}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header.bar{border-bottom:1px solid var(--line)}
+header.bar .wrap{display:flex;gap:20px;align-items:center;justify-content:space-between;padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.brand{font:700 1.15rem "Bricolage Grotesque",sans-serif;text-decoration:none;color:var(--ink)}
+nav a{margin-left:18px;color:var(--mute);text-decoration:none}nav a:hover{color:var(--ink)}
+.hero{padding:44px 0 20px}
+.hero p{max-width:56ch;color:var(--mute);font-size:1.1rem}
+.strip{display:flex;height:14px;border-radius:7px;overflow:hidden;margin-top:26px}
+.strip i{flex:1}
+.tool{display:grid;grid-template-columns:340px 1fr;gap:28px;padding:30px 0 50px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.drop{display:grid;place-items:center;text-align:center;min-height:200px;border:2px dashed var(--line);border-radius:8px;cursor:pointer;color:var(--mute);padding:10px;overflow:hidden}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.drop img{max-width:100%;max-height:240px;border-radius:4px}
+label{display:block;font-weight:600;margin:14px 0 4px;font-size:.95rem}
+.seg{display:flex;gap:8px}.seg label{flex:1;margin:0;font-weight:400}
+.seg input{position:absolute;opacity:0}
+.seg span{display:block;text-align:center;border:1px solid var(--line);border-radius:6px;padding:7px}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+select{width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit}
+button.go{width:100%;margin-top:18px;padding:12px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);font:600 1rem inherit;cursor:pointer}
+button.go:disabled{opacity:.5;cursor:wait}
+.hint{color:var(--mute);font-size:.9rem;margin:8px 0 0}
+.empty{color:var(--mute);padding:40px 10px;text-align:center}
+.id{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.id img{height:130px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid #888;vertical-align:-2px;margin-right:4px}
+.bars{margin-top:6px;font-size:.9rem;color:var(--mute)}
+.bars div{display:flex;align-items:center;gap:8px}.bars b{display:block;height:6px;background:var(--accent);border-radius:3px}
+.look{margin-top:20px}.look .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.item img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:6px}
+.item small{color:var(--mute)}
+.warn{background:var(--warn);border:1px solid var(--warn-line);border-radius:8px;padding:10px 14px;margin-top:14px}
+.err{color:var(--bad);font-weight:600}
+section.info{padding:46px 0;border-top:1px solid var(--line)}
+.steps{list-style:none;counter-reset:s;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.steps li::before{content:counter(s);display:block;font:700 1.6rem "Bricolage Grotesque",sans-serif;color:var(--accent)}
+.steps p{margin:.3em 0 0;color:var(--mute);font-size:.95rem}
+dl{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:10px 24px;max-width:900px}
+dt{font-weight:600}dd{margin:0;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:24px 0;color:var(--mute);font-size:.9rem}
+@media(max-width:820px){.tool{grid-template-columns:1fr}dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#top">Outfit Matcher</a>
+  <nav aria-label="Sections"><a href="#try">Try it</a><a href="#how">How it works</a><a href="#concepts">Concepts</a><a href="#limits">Limits</a></nav>
+</div></header>
+
+<main id="top">
+<section class="hero"><div class="wrap">
+  <h1>Upload one garment. Get the rest of the outfit.</h1>
+  <p>Photograph a shirt, a pair of pants or shoes. A neural network works out what it is, reads its colour, and a diffusion model draws three matching looks for the pieces you are missing.</p>
+  <div class="strip" id="strip" aria-hidden="true"></div>
+</div></section>
+
+<section id="try" class="wrap"><div class="tool">
+  <form class="panel" id="form">
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo of one clothing item">
+      <span id="dropText">Drop a photo here or click to choose<br><small>One item on a plain background works best</small></span>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+    <label id="gl">Outfit for</label>
+    <div class="seg" role="radiogroup" aria-labelledby="gl">
+      <label><input type="radio" name="gender" value="Men" checked><span>Men</span></label>
+      <label><input type="radio" name="gender" value="Women"><span>Women</span></label>
+    </div>
+    <label id="sl">Style</label>
+    <div class="seg" role="radiogroup" aria-labelledby="sl">
+      <label><input type="radio" name="style" value="casual" checked><span>Casual</span></label>
+      <label><input type="radio" name="style" value="formal"><span>Formal</span></label>
+    </div>
+    <label for="role">Garment type</label>
+    <select id="role" name="role">
+      <option value="auto">Detect automatically</option><option value="top">Top (shirt, T-shirt, jacket)</option>
+      <option value="bottom">Bottom (pants, jeans, skirt)</option><option value="dress">Dress</option><option value="shoes">Shoes</option>
+    </select>
+    <p class="hint">Change this only if the model is unsure or wrong.</p>
+    <button class="go" id="go" type="submit">Match my outfit</button>
+  </form>
+  <div class="panel" id="out" aria-live="polite"><div class="empty">Your outfit looks will appear here. Generating takes up to a minute on a GPU.</div></div>
+</div></section>
+
+<section id="how" class="info"><div class="wrap">
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><h3>Find the garment</h3><p>Background removal cuts the photo down to the item, so shadows and hangers do not confuse later steps.</p></li>
+    <li><h3>Identify it</h3><p>A ResNet18, fine-tuned on about 9,000 catalogue photos, names one of 15 garment types. Below 55% confidence it asks you instead of guessing.</p></li>
+    <li><h3>Read the colour</h3><p>K-means clustering on the garment pixels finds the main colour, matched to a 25-colour fashion palette.</p></li>
+    <li><h3>Plan three looks</h3><p>Colour-theory rules pick a neutral pairing, a tone-on-tone look and a contrast look.</p></li>
+    <li><h3>Generate the pieces</h3><p>SD-Turbo draws each missing item. Every image is checked for its planned colour and for being the right kind of garment.</p></li>
+  </ol>
+</div></section>
+
+<section id="concepts" class="info"><div class="wrap">
+  <h2>Concepts used</h2>
+  <dl>
+    <dt>Transfer learning</dt><dd>The classifier starts from a network pretrained on ImageNet and only learns what is new, instead of training from scratch.</dd>
+    <dt>Two-phase fine-tuning</dt><dd>First only the new last layer is trained, then the last convolutional block is unfrozen at a lower learning rate. The best epoch on validation data is kept.</dd>
+    <dt>Data augmentation</dt><dd>Random crops, shifts, blur, flips and colour jitter make the model cope with photos unlike the catalogue.</dd>
+    <dt>Class-weighted loss</dt><dd>Rarer garment types count more, so T-shirts do not dominate.</dd>
+    <dt>Diffusion model</dt><dd>SD-Turbo starts from noise and removes it step by step, guided by a text prompt, to draw each product photo.</dd>
+    <dt>Classical vision</dt><dd>Cut-out (k-means background model and GrabCut), colour detection (k-means) and CIE Lab colour distance are not deep learning.</dd>
+  </dl>
+</div></section>
+
+<section id="limits" class="info"><div class="wrap">
+  <h2>Limits</h2>
+  <dl>
+    <dt>Rules, not taste</dt><dd>Pairings come from colour theory, not from a model trained on real outfits.</dd>
+    <dt>Small training photos</dt><dd>The classifier learned from tiny catalogue shots, so people wearing the item or cluttered scenes can be misread.</dd>
+    <dt>Generated, not real</dt><dd>The matching pieces are AI images, not products you can buy.</dd>
+    <dt>Licence</dt><dd>SD-Turbo carries Stability AI's licence terms. Check them before commercial use.</dd>
+  </dl>
+</div></section>
+</main>
+<footer><div class="wrap">Outfit Matcher: ResNet18 transfer learning, k-means colour reading and SD-Turbo generation. See the docs folder for the full guide.</div></footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const PALETTE = ["#141414","#f5f5f5","#eee8d7","#faf0c8","#decdaf","#808080","#36454f","#192350","#2d64c8","#008080","#288c46","#6e7328","#aaa064","#cda01e","#f0dc32","#f0821e","#aa4b23","#c81e28","#6e1423","#f096b4","#6e3296","#beaae1","#644128","#be9664","#ffc8aa"];
+$("#strip").innerHTML = PALETTE.map(c => `<i style="background:${c}"></i>`).join("");
+
+const drop = $("#drop"), file = $("#file"), out = $("#out"), go = $("#go");
+let photo = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function setPhoto(f) {
+  if (!f || !f.type.startsWith("image/")) return;
+  photo = f;
+  drop.innerHTML = `<img alt="Your uploaded garment" src="${URL.createObjectURL(f)}">`;
+}
+drop.onclick = () => file.click();
+drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); file.click(); } };
+file.onchange = () => setPhoto(file.files[0]);
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => setPhoto(e.dataTransfer.files[0]));
+
+function render(r) {
+  const c = r.color;
+  const guesses = r.top.map(t => `<div><span style="width:110px">${esc(t.label)}</span><b style="width:${Math.round(t.p * 160)}px"></b>${Math.round(t.p * 100)}%</div>`).join("");
+  let h = `<div class="id"><img alt="Your garment" src="${URL.createObjectURL(photo)}"><div>
+    <h3>${r.uncertain ? "Not sure what this is" : r.friendly ? "Identified: " + esc(r.friendly) + " (" + Math.round(r.confidence * 100) + "% sure)" : "Garment type set by you: " + esc(r.role)}</h3>
+    <div><span class="dot" style="background:${c.hex}"></span>Colour: <b>${esc(c.name)}</b></div><div class="bars">${guesses}</div></div></div>`;
+  if (r.uncertain) {
+    h += `<div class="warn">The model is not confident enough to plan an outfit. Pick the garment type on the left and match again. A photo of just the item on a plain background also helps.</div>`;
+  }
+  for (const look of r.looks) {
+    h += `<div class="look"><h3>${esc(look.title)}</h3><div class="row">` + look.items.map(it => `
+      <div class="item"><img alt="${esc(it.color + " " + it.noun)}" src="${it.image}">
+      <div><span class="dot" style="background:${it.hex}"></span><b>${esc(it.color)} ${esc(it.noun)}</b><br>
+      <small>Colour error ${it.delta_e}, ${it.type_ok ? "type ok" : "type unsure"}</small></div></div>`).join("") + `</div></div>`;
+  }
+  if (r.summary && !r.uncertain) h += `<p class="hint">${esc(r.summary)}</p>`;
+  out.innerHTML = h;
+}
+
+$("#form").onsubmit = async e => {
+  e.preventDefault();
+  if (!photo) { out.innerHTML = `<p class="err">Choose a photo of one clothing item first.</p>`; return; }
+  const fd = new FormData(e.target);
+  fd.set("photo", photo);
+  go.disabled = true; go.textContent = "Matching...";
+  out.innerHTML = `<div class="empty">Identifying the garment and generating looks. This can take up to a minute.</div>`;
+  try {
+    const res = await fetch("/api/match", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "The server returned an error.");
+    render(data);
+  } catch (err) {
+    out.innerHTML = `<p class="err">${esc(err.message)}</p><p class="hint">Check that the server is running (python app.py) and that the classifier has been trained.</p>`;
+  } finally { go.disabled = false; go.textContent = "Match my outfit"; }
+};
+</script>
+</body>
+</html>

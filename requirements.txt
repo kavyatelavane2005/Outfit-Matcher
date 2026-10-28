@@ -1,0 +1,12 @@
+torch
+torchvision
+diffusers
+transformers
+accelerate
+datasets
+scikit-learn
+opencv-python-headless
+numpy
+pandas
+pillow
+flask
